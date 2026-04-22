@@ -246,6 +246,17 @@
     color: #1a0f00;
   }
 
+  /* 後手番：盤を180度回転 */
+  .board.gote-view {
+    transform: rotate(180deg);
+  }
+  .board.gote-view .cell {
+    transform: rotate(180deg); /* セル内は戻す */
+  }
+  .board.gote-view .cell:hover {
+    transform: rotate(180deg) scale(1.04);
+  }
+
   /* Wood texture lines on board */
   .board::before {
     content: '';
@@ -277,6 +288,11 @@
 <div class="mode-select">
   <button class="mode-btn active" data-mode="basic" onclick="setMode('basic',this)">入門</button>
   <button class="mode-btn" data-mode="full" onclick="setMode('full',this)">通常</button>
+  <button class="mode-btn" data-mode="gote" onclick="setMode('gote',this)">後手番</button>
+</div>
+
+<div id="gote-badge" style="display:none; margin-bottom:10px; color:#c8960c; font-size:0.78rem; letter-spacing:0.25em; text-align:center;">
+  △ 後手番（盤が逆向き）
 </div>
 
 <div class="quiz-card">
@@ -313,6 +329,7 @@ function setMode(m, btn) {
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   updateLabelsVisibility();
+  updateBoardOrientation();
   nextQuestion();
 }
 
@@ -320,6 +337,41 @@ function updateLabelsVisibility() {
   const show = (mode === 'basic');
   document.getElementById('col-labels').style.visibility = show ? 'visible' : 'hidden';
   document.getElementById('row-labels').style.visibility = show ? 'visible' : 'hidden';
+  document.getElementById('gote-badge').style.display = (mode === 'gote') ? 'block' : 'none';
+  // ヒント更新
+  document.getElementById('hint').textContent = (mode === 'gote')
+    ? '後手視点：盤が逆向きになっています'
+    : '縦：１〜９（右→左）　横：一〜九（上→下）';
+}
+
+function updateBoardOrientation() {
+  const board = document.getElementById('board');
+  if (mode === 'gote') {
+    board.classList.add('gote-view');
+    // ラベルも逆順に
+    rebuildLabelsGote();
+  } else {
+    board.classList.remove('gote-view');
+    buildLabels();
+  }
+}
+
+function rebuildLabelsGote() {
+  // 後手番：列ラベルは1→9（左から）、行ラベルは九→一（上から）
+  const colLabels = document.getElementById('col-labels');
+  colLabels.innerHTML = '';
+  for (let c = 1; c <= 9; c++) {
+    const d = document.createElement('div');
+    d.textContent = c;
+    colLabels.appendChild(d);
+  }
+  const rowLabels = document.getElementById('row-labels');
+  rowLabels.innerHTML = '';
+  for (let r = 8; r >= 0; r--) {
+    const d = document.createElement('div');
+    d.textContent = KANJI_ROWS[r];
+    rowLabels.appendChild(d);
+  }
 }
 
 // Generate random question
@@ -327,20 +379,23 @@ function genQuestion() {
   // col: 1-9 (将棋の筋), row: 0-8 index
   let col, rowIdx;
   if (mode === 'basic') {
-    // only corners + center-ish for beginners
     const easyCols = [7,6,5,4,3,2];
     const easyRows = [0,1,2,6,7,8];
     col = easyCols[Math.floor(Math.random()*easyCols.length)];
     rowIdx = easyRows[Math.floor(Math.random()*easyRows.length)];
   } else {
-    col = Math.floor(Math.random()*9)+1; // 1-9
-    rowIdx = Math.floor(Math.random()*9); // 0-8
+    col = Math.floor(Math.random()*9)+1;
+    rowIdx = Math.floor(Math.random()*9);
   }
   const notation = col + KANJI_ROWS[rowIdx];
   // Board display: col 9 is leftmost (index 0), col 1 is rightmost (index 8)
-  const cellCol = 9 - col; // 0-based left-to-right index on board
-  const cellRow = rowIdx;
-  return { notation, col, rowIdx, cellCol, cellRow };
+  // 後手番でも符号の意味は同じ、ただし盤が180度回転しているので
+  // 見た目上のセル位置は逆になる
+  const cellColSente = 9 - col; // 先手視点のcellCol
+  const cellRowSente = rowIdx;  // 先手視点のcellRow
+  // 後手番：盤がrotateされているため、クリック座標は反転して届く
+  // → 判定はそのまま先手視点で行う（CSSのrotateはvisualのみ）
+  return { notation, col, rowIdx, cellCol: cellColSente, cellRow: cellRowSente };
 }
 
 let currentQ = null;
@@ -436,6 +491,7 @@ function updateScore() {
 buildBoard();
 buildLabels();
 updateLabelsVisibility();
+updateBoardOrientation();
 nextQuestion();
 </script>
 </body>
