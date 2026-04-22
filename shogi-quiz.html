@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>将棋符号クイズ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1208;
+    --paper: #f5e8c8;
+    --board: #deb887;
+    --board-dark: #c9a76b;
+    --border: #5a3e1b;
+    --ink: #1a0f00;
+    --gold: #c8960c;
+    --red: #c0392b;
+    --green: #27ae60;
+    --highlight: rgba(255,215,0,0.5);
+    --wrong: rgba(192,57,43,0.45);
+    --correct: rgba(39,174,96,0.55);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Shippori Mincho', serif;
+    padding: 20px;
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, #2d1e06 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, #0d0d0d 0%, transparent 60%);
+  }
+
+  /* Title */
+  .title-area {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .title-area h1 {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 900;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    text-shadow: 0 2px 8px rgba(200,150,12,0.4);
+  }
+  .title-area p {
+    color: #a08050;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    margin-top: 4px;
+  }
+
+  /* Score */
+  .scoreboard {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 20px;
+    color: var(--paper);
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+  }
+  .scoreboard span { color: var(--gold); font-weight: 700; font-size: 1.2em; }
+
+  /* Quiz card */
+  .quiz-card {
+    background: var(--paper);
+    border: 3px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 28px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+    min-width: 260px;
+    position: relative;
+  }
+  .quiz-label {
+    font-size: 0.7rem;
+    color: #8a6a3a;
+    letter-spacing: 0.3em;
+    margin-bottom: 6px;
+  }
+  .quiz-notation {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 900;
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+    color: var(--ink);
+    letter-spacing: 0.15em;
+    line-height: 1.1;
+  }
+  .quiz-hint {
+    font-size: 0.75rem;
+    color: #a08050;
+    margin-top: 6px;
+    letter-spacing: 0.1em;
+  }
+
+  /* Feedback message */
+  .feedback {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    margin-bottom: 10px;
+    transition: opacity 0.3s;
+  }
+  .feedback.correct { color: var(--green); }
+  .feedback.wrong { color: var(--red); }
+
+  /* Board wrapper */
+  .board-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  /* Column numbers (9..1) across top */
+  .col-labels {
+    display: grid;
+    grid-template-columns: repeat(9, 48px);
+    margin-bottom: 2px;
+  }
+  .col-labels div {
+    text-align: center;
+    color: #c8a060;
+    font-size: 0.8rem;
+    font-family: 'Noto Serif JP', serif;
+  }
+
+  /* Row labels on right (一..九) */
+  .row-labels {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    margin-left: 4px;
+  }
+  .row-labels div {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    color: #c8a060;
+    font-size: 0.8rem;
+    font-family: 'Noto Serif JP', serif;
+    writing-mode: vertical-rl;
+  }
+
+  /* Board */
+  .board {
+    display: grid;
+    grid-template-columns: repeat(9, 48px);
+    grid-template-rows: repeat(9, 48px);
+    border: 2.5px solid var(--border);
+    background: var(--board);
+    box-shadow: 0 6px 30px rgba(0,0,0,0.6), inset 0 0 40px rgba(160,110,40,0.15);
+    position: relative;
+    cursor: pointer;
+  }
+
+  .cell {
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, transform 0.1s;
+    position: relative;
+    user-select: none;
+  }
+  .cell:hover {
+    background: rgba(255,215,0,0.25);
+    transform: scale(1.04);
+    z-index: 2;
+  }
+  .cell.correct-cell {
+    background: var(--correct) !important;
+    animation: pulse-green 0.5s ease;
+  }
+  .cell.wrong-cell {
+    background: var(--wrong) !important;
+    animation: shake 0.35s ease;
+  }
+  .cell.show-answer {
+    background: rgba(255,215,0,0.55) !important;
+  }
+
+  @keyframes pulse-green {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  /* Next button */
+  .btn-next {
+    margin-top: 18px;
+    background: linear-gradient(135deg, #8b5e1a, #c8960c);
+    color: var(--paper);
+    border: none;
+    padding: 10px 40px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    border-radius: 3px;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: none;
+  }
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
+  .btn-next.visible { display: inline-block; }
+
+  /* difficulty */
+  .mode-select {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .mode-btn {
+    background: transparent;
+    border: 1.5px solid #5a3e1b;
+    color: #a08050;
+    padding: 5px 16px;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-btn.active, .mode-btn:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #1a0f00;
+  }
+
+  /* Wood texture lines on board */
+  .board::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 47px,
+      rgba(90,62,27,0.08) 47px,
+      rgba(90,62,27,0.08) 48px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="title-area">
+  <h1>将棋　符号読み</h1>
+  <p>表示された符号のマスをクリック</p>
+</div>
+
+<div class="scoreboard">
+  正解: <span id="sc-correct">0</span>　|　問題: <span id="sc-total">0</span>
+</div>
+
+<div class="mode-select">
+  <button class="mode-btn active" data-mode="basic" onclick="setMode('basic',this)">入門</button>
+  <button class="mode-btn" data-mode="full" onclick="setMode('full',this)">通常</button>
+</div>
+
+<div class="quiz-card">
+  <div class="quiz-label">── 符号 ──</div>
+  <div class="quiz-notation" id="notation">７六</div>
+  <div class="quiz-hint" id="hint">縦：１〜９（右→左）　横：一〜九（上→下）</div>
+</div>
+
+<div class="feedback" id="feedback"></div>
+
+<div>
+  <div style="display:flex;">
+    <div class="col-labels" id="col-labels"></div>
+  </div>
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+    <div class="row-labels" id="row-labels"></div>
+  </div>
+</div>
+
+<button class="btn-next" id="btn-next" onclick="nextQuestion()">次の問題 →</button>
+
+<script>
+const KANJI_ROWS = ['一','二','三','四','五','六','七','八','九'];
+const NUM_COLS   = ['９','８','７','６','５','４','３','２','１']; // left to right on display
+
+let mode = 'basic';
+let correctCell = null;
+let answered = false;
+let scoreCorrect = 0, scoreTotal = 0;
+
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateLabelsVisibility();
+  nextQuestion();
+}
+
+function updateLabelsVisibility() {
+  const show = (mode === 'basic');
+  document.getElementById('col-labels').style.visibility = show ? 'visible' : 'hidden';
+  document.getElementById('row-labels').style.visibility = show ? 'visible' : 'hidden';
+}
+
+// Generate random question
+function genQuestion() {
+  // col: 1-9 (将棋の筋), row: 0-8 index
+  let col, rowIdx;
+  if (mode === 'basic') {
+    // only corners + center-ish for beginners
+    const easyCols = [7,6,5,4,3,2];
+    const easyRows = [0,1,2,6,7,8];
+    col = easyCols[Math.floor(Math.random()*easyCols.length)];
+    rowIdx = easyRows[Math.floor(Math.random()*easyRows.length)];
+  } else {
+    col = Math.floor(Math.random()*9)+1; // 1-9
+    rowIdx = Math.floor(Math.random()*9); // 0-8
+  }
+  const notation = col + KANJI_ROWS[rowIdx];
+  // Board display: col 9 is leftmost (index 0), col 1 is rightmost (index 8)
+  const cellCol = 9 - col; // 0-based left-to-right index on board
+  const cellRow = rowIdx;
+  return { notation, col, rowIdx, cellCol, cellRow };
+}
+
+let currentQ = null;
+
+function buildBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+      cell.addEventListener('click', () => onCellClick(r, c));
+      board.appendChild(cell);
+    }
+  }
+}
+
+function buildLabels() {
+  const colLabels = document.getElementById('col-labels');
+  colLabels.innerHTML = '';
+  // Display cols 9..1 left to right
+  for (let c = 9; c >= 1; c--) {
+    const d = document.createElement('div');
+    d.textContent = c;
+    colLabels.appendChild(d);
+  }
+
+  const rowLabels = document.getElementById('row-labels');
+  rowLabels.innerHTML = '';
+  for (let r = 0; r < 9; r++) {
+    const d = document.createElement('div');
+    d.textContent = KANJI_ROWS[r];
+    rowLabels.appendChild(d);
+  }
+}
+
+function nextQuestion() {
+  answered = false;
+  clearHighlights();
+  setFeedback('', '');
+  document.getElementById('btn-next').classList.remove('visible');
+  currentQ = genQuestion();
+  document.getElementById('notation').textContent = currentQ.notation;
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.cell').forEach(c => {
+    c.classList.remove('correct-cell','wrong-cell','show-answer');
+  });
+}
+
+function getCell(row, col) {
+  return document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+}
+
+function onCellClick(row, col) {
+  if (answered) return;
+  answered = true;
+  scoreTotal++;
+
+  const isCorrect = (row === currentQ.cellRow && col === currentQ.cellCol);
+  const clickedCell = getCell(row, col);
+  const answerCell = getCell(currentQ.cellRow, currentQ.cellCol);
+
+  if (isCorrect) {
+    scoreCorrect++;
+    clickedCell.classList.add('correct-cell');
+    setFeedback('正解！　○', 'correct');
+  } else {
+    clickedCell.classList.add('wrong-cell');
+    answerCell.classList.add('show-answer');
+    setFeedback(`不正解　×　→ ${currentQ.notation} はここです`, 'wrong');
+  }
+
+  updateScore();
+  document.getElementById('btn-next').classList.add('visible');
+}
+
+function setFeedback(msg, cls) {
+  const el = document.getElementById('feedback');
+  el.textContent = msg;
+  el.className = 'feedback ' + cls;
+}
+
+function updateScore() {
+  document.getElementById('sc-correct').textContent = scoreCorrect;
+  document.getElementById('sc-total').textContent = scoreTotal;
+}
+
+// Init
+buildBoard();
+buildLabels();
+updateLabelsVisibility();
+nextQuestion();
+</script>
+</body>
+</html>
