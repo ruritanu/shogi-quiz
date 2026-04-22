@@ -236,6 +236,13 @@
 
 
 
+  /* timeattack */
+  .timeattack-area {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
   /* difficulty */
   .mode-select {
     display: flex;
@@ -283,6 +290,35 @@
     border-right: none;
   }
 
+  /* 星（ほし）4箇所 - 各交点の角に配置 */
+  .cell[data-row="2"][data-col="2"]::after,
+  .cell[data-row="2"][data-col="6"]::after,
+  .cell[data-row="6"][data-col="2"]::after,
+  .cell[data-row="6"][data-col="6"]::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 50%;
+    z-index: 3;
+    pointer-events: none;
+  }
+  /* 7三(row2,col2): 右下 */
+  .cell[data-row="2"][data-col="2"]::after { bottom: -3px; right: -3px; }
+  /* 3三(row2,col6): 左下 */
+  .cell[data-row="2"][data-col="6"]::after { bottom: -3px; left: -3px; }
+  /* 7七(row6,col2): 右上 */
+  .cell[data-row="6"][data-col="2"]::after { top: -3px; right: -3px; }
+  /* 3七(row6,col6): 左上 */
+  .cell[data-row="6"][data-col="6"]::after { top: -3px; left: -3px; }
+
+  /* 後手番：180度回転で星の角が逆になるので打ち消し */
+  .board.gote-view .cell[data-row="2"][data-col="2"]::after { bottom: auto; right: auto; top: -3px; left: -3px; }
+  .board.gote-view .cell[data-row="2"][data-col="6"]::after { bottom: auto; left: auto; top: -3px; right: -3px; }
+  .board.gote-view .cell[data-row="6"][data-col="2"]::after { top: auto; right: auto; bottom: -3px; left: -3px; }
+  .board.gote-view .cell[data-row="6"][data-col="6"]::after { top: auto; left: auto; bottom: -3px; right: -3px; }
+
   /* 一番右の列のborder-rightを消して均等に */
   .cell[data-col="8"] {
     border-right: none;
@@ -322,11 +358,20 @@
   <button class="mode-btn" data-mode="gote" onclick="setMode('gote',this)">後手番</button>
 </div>
 
+<div class="timeattack-area" id="timeattack-area">
+  <button class="mode-btn" onclick="startTimeAttack(30)">⏱ 30秒</button>
+  <button class="mode-btn" onclick="startTimeAttack(60)">⏱ 60秒</button>
+  <button class="mode-btn" onclick="startTimeAttack(120)">⏱ 120秒</button>
+</div>
+
 <div id="gote-badge" style="display:none; margin-bottom:10px; color:#c8960c; font-size:0.78rem; letter-spacing:0.25em; text-align:center;">
   △ 後手番（盤が逆向き）
 </div>
 
-<div class="quiz-card">
+<div class="quiz-card" style="position:relative;">
+  <div id="timer-display" style="display:none; position:absolute; top:8px; right:12px; font-family:'Noto Serif JP',serif; font-weight:900; font-size:1.1rem; color:var(--gold); letter-spacing:0.1em;">
+    <span id="timer-count">60</span>秒
+  </div>
   <div class="quiz-label">── 符号 ──</div>
   <div class="quiz-notation" id="notation">７六</div>
   <div class="quiz-hint" id="hint" style="display:none;"></div>
@@ -495,14 +540,27 @@ function onCellClick(row, col) {
     scoreCorrect++;
     clickedCell.classList.add('correct-cell');
     setFeedback('正解！　○', 'correct');
+    updateScore();
+    if (taActive) {
+      // タイムアタック中は自動で次の問題へ
+      setTimeout(() => nextQuestion(), 400);
+    } else {
+      document.getElementById('btn-next').classList.add('visible');
+    }
   } else {
     clickedCell.classList.add('wrong-cell');
-    answerCell.classList.add('show-answer');
-    setFeedback(`不正解　×　→ ${currentQ.notation} はここです`, 'wrong');
+    if (!taActive) {
+      answerCell.classList.add('show-answer');
+    }
+    setFeedback(taActive ? 'もう一度！' : `不正解　×　→ ${currentQ.notation} はここです`, 'wrong');
+    updateScore();
+    if (taActive) {
+      // タイムアタック中は不正解でもansweredを戻して再挑戦
+      answered = false;
+    } else {
+      document.getElementById('btn-next').classList.add('visible');
+    }
   }
-
-  updateScore();
-  document.getElementById('btn-next').classList.add('visible');
 }
 
 function setFeedback(msg, cls) {
@@ -514,6 +572,47 @@ function setFeedback(msg, cls) {
 function updateScore() {
   document.getElementById('sc-correct').textContent = scoreCorrect;
   document.getElementById('sc-total').textContent = scoreTotal;
+}
+
+// タイムアタック
+let taTimer = null;
+let taSeconds = 0;
+let taActive = false;
+
+function startTimeAttack(seconds) {
+  // 既存タイマーをリセット
+  if (taTimer) clearInterval(taTimer);
+  taActive = true;
+  taSeconds = seconds;
+  scoreCorrect = 0;
+  scoreTotal = 0;
+  updateScore();
+
+  document.getElementById('timer-display').style.display = 'block';
+  document.getElementById('timer-count').textContent = taSeconds;
+
+  nextQuestion();
+
+  taTimer = setInterval(() => {
+    taSeconds--;
+    document.getElementById('timer-count').textContent = taSeconds;
+    if (taSeconds <= 10) {
+      document.getElementById('timer-count').style.color = 'var(--red)';
+    }
+    if (taSeconds <= 0) {
+      clearInterval(taTimer);
+      taActive = false;
+      endTimeAttack();
+    }
+  }, 1000);
+}
+
+function endTimeAttack() {
+  answered = true;
+  document.getElementById('timer-display').style.display = 'none';
+  document.getElementById('timer-count').style.color = 'var(--gold)';
+  setFeedback(`終了！　${scoreCorrect} 問正解 / ${scoreTotal} 問`, 'correct');
+  document.getElementById('btn-next').classList.remove('visible');
 }
 
 // Init
