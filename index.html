@@ -7,7 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cell: min(38px, calc((100svh - 280px) / 9));
+    --cell-h: min(38px, calc((100svh - 280px) / 9));
+    --cell-w: calc(var(--cell-h) * 0.88);
     --bg: #1a1208;
     --paper: #f5e8c8;
     --board: #deb887;
@@ -120,7 +121,7 @@
   /* Board layout */
   .board-area {
     display: inline-grid;
-    grid-template-columns: repeat(9, var(--cell)) 24px;
+    grid-template-columns: repeat(9, var(--cell-w)) 24px;
     grid-template-rows: 20px repeat(9, 38px);
   }
 
@@ -129,7 +130,7 @@
     grid-column: 1 / 10;
     grid-row: 1;
     display: grid;
-    grid-template-columns: repeat(9, var(--cell));
+    grid-template-columns: repeat(9, var(--cell-w));
   }
   .col-labels div {
     text-align: center;
@@ -150,7 +151,7 @@
     grid-column: 10;
     grid-row: 2 / 11;
     display: grid;
-    grid-template-rows: repeat(9, var(--cell));
+    grid-template-rows: repeat(9, var(--cell-h));
     margin-left: 4px;
   }
   .row-labels div {
@@ -165,8 +166,8 @@
   /* Board */
   .board {
     display: grid;
-    grid-template-columns: repeat(9, var(--cell));
-    grid-template-rows: repeat(9, var(--cell));
+    grid-template-columns: repeat(9, var(--cell-w));
+    grid-template-rows: repeat(9, var(--cell-h));
     border: 2.5px solid var(--border);
     background: var(--board);
     box-shadow: 0 6px 30px rgba(0,0,0,0.6), inset 0 0 40px rgba(160,110,40,0.15);
@@ -270,6 +271,11 @@
     transform: rotate(180deg) scale(1.04);
   }
 
+  /* 一番右の列のborder-rightを消して均等に */
+  .cell[data-col="8"] {
+    border-right: none;
+  }
+
   /* Wood texture lines on board */
   .board::before {
     content: '';
@@ -278,9 +284,9 @@
     background: repeating-linear-gradient(
       90deg,
       transparent,
-      transparent calc(var(--cell) - 1px),
-      rgba(90,62,27,0.08) calc(var(--cell) - 1px),
-      rgba(90,62,27,0.08) var(--cell)
+      transparent calc(var(--cell-w) - 1px),
+      rgba(90,62,27,0.08) calc(var(--cell-w) - 1px),
+      rgba(90,62,27,0.08) var(--cell-w)
     );
     pointer-events: none;
     z-index: 1;
