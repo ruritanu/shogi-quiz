@@ -2,11 +2,12 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>将棋符号クイズ</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
+    --cell: min(38px, calc((100svh - 280px) / 9));
     --bg: #1a1208;
     --paper: #f5e8c8;
     --board: #deb887;
@@ -119,7 +120,7 @@
   /* Board layout */
   .board-area {
     display: inline-grid;
-    grid-template-columns: repeat(9, 38px) 24px;
+    grid-template-columns: repeat(9, var(--cell)) 24px;
     grid-template-rows: 20px repeat(9, 38px);
   }
 
@@ -128,7 +129,7 @@
     grid-column: 1 / 10;
     grid-row: 1;
     display: grid;
-    grid-template-columns: repeat(9, 38px);
+    grid-template-columns: repeat(9, var(--cell));
   }
   .col-labels div {
     text-align: center;
@@ -149,7 +150,7 @@
     grid-column: 10;
     grid-row: 2 / 11;
     display: grid;
-    grid-template-rows: repeat(9, 38px);
+    grid-template-rows: repeat(9, var(--cell));
     margin-left: 4px;
   }
   .row-labels div {
@@ -164,8 +165,8 @@
   /* Board */
   .board {
     display: grid;
-    grid-template-columns: repeat(9, 38px);
-    grid-template-rows: repeat(9, 38px);
+    grid-template-columns: repeat(9, var(--cell));
+    grid-template-rows: repeat(9, var(--cell));
     border: 2.5px solid var(--border);
     background: var(--board);
     box-shadow: 0 6px 30px rgba(0,0,0,0.6), inset 0 0 40px rgba(160,110,40,0.15);
@@ -277,9 +278,9 @@
     background: repeating-linear-gradient(
       90deg,
       transparent,
-      transparent 37px,
-      rgba(90,62,27,0.08) 37px,
-      rgba(90,62,27,0.08) 38px
+      transparent calc(var(--cell) - 1px),
+      rgba(90,62,27,0.08) calc(var(--cell) - 1px),
+      rgba(90,62,27,0.08) var(--cell)
     );
     pointer-events: none;
     z-index: 1;
