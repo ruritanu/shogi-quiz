@@ -272,12 +272,15 @@
   .board.gote-view .cell:hover {
     transform: rotate(180deg) scale(1.04);
   }
-  /* 回転で一番下の行のborderが二重に見えるのを防ぐ */
+  /* 後手番：回転で左右逆になるのでborder調整 */
   .board.gote-view .cell[data-row="8"] {
     border-bottom: none;
   }
   .board.gote-view .cell[data-col="8"] {
     border-right: 1px solid var(--border);
+  }
+  .board.gote-view .cell[data-col="0"] {
+    border-right: none;
   }
 
   /* 一番右の列のborder-rightを消して均等に */
