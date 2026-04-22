@@ -126,7 +126,7 @@
   /* Column numbers (9..1) across top */
   .col-labels {
     display: grid;
-    grid-template-columns: repeat(9, 48px);
+    grid-template-columns: repeat(9, 38px);
     margin-bottom: 2px;
   }
   .col-labels div {
@@ -144,7 +144,7 @@
     margin-left: 4px;
   }
   .row-labels div {
-    height: 48px;
+    height: 38px;
     display: flex;
     align-items: center;
     color: #c8a060;
@@ -156,8 +156,8 @@
   /* Board */
   .board {
     display: grid;
-    grid-template-columns: repeat(9, 48px);
-    grid-template-rows: repeat(9, 48px);
+    grid-template-columns: repeat(9, 38px);
+    grid-template-rows: repeat(9, 38px);
     border: 2.5px solid var(--border);
     background: var(--board);
     box-shadow: 0 6px 30px rgba(0,0,0,0.6), inset 0 0 40px rgba(160,110,40,0.15);
@@ -220,6 +220,8 @@
     display: none;
   }
   .btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
+
+
   .btn-next.visible { display: inline-block; }
 
   /* difficulty */
@@ -265,9 +267,9 @@
     background: repeating-linear-gradient(
       90deg,
       transparent,
-      transparent 47px,
-      rgba(90,62,27,0.08) 47px,
-      rgba(90,62,27,0.08) 48px
+      transparent 37px,
+      rgba(90,62,27,0.08) 37px,
+      rgba(90,62,27,0.08) 38px
     );
     pointer-events: none;
     z-index: 1;
