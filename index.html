@@ -103,7 +103,7 @@
 
   /* Feedback message */
   .feedback {
-    height: 32px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -116,28 +116,38 @@
   .feedback.correct { color: var(--green); }
   .feedback.wrong { color: var(--red); }
 
-  /* Board wrapper */
-  .board-wrap {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
+  /* Board layout */
+  .board-area {
+    display: inline-grid;
+    grid-template-columns: repeat(9, 38px) 24px;
+    grid-template-rows: 20px repeat(9, 38px);
   }
 
-  /* Column numbers (9..1) across top */
+  /* Column numbers top row */
   .col-labels {
+    grid-column: 1 / 10;
+    grid-row: 1;
     display: grid;
     grid-template-columns: repeat(9, 38px);
-    margin-bottom: 2px;
   }
   .col-labels div {
     text-align: center;
     color: #c8a060;
     font-size: 0.8rem;
     font-family: 'Noto Serif JP', serif;
+    line-height: 20px;
   }
 
-  /* Row labels on right (一..九) */
+  /* Board itself */
+  .board-inner {
+    grid-column: 1 / 10;
+    grid-row: 2 / 11;
+  }
+
+  /* Row labels right column */
   .row-labels {
+    grid-column: 10;
+    grid-row: 2 / 11;
     display: grid;
     grid-template-rows: repeat(9, 38px);
     margin-left: 4px;
@@ -305,14 +315,10 @@
 
 <div class="feedback" id="feedback"></div>
 
-<div>
-  <div style="display:flex;">
-    <div class="col-labels" id="col-labels"></div>
-  </div>
-  <div class="board-wrap">
-    <div class="board" id="board"></div>
-    <div class="row-labels" id="row-labels"></div>
-  </div>
+<div class="board-area">
+  <div class="col-labels" id="col-labels"></div>
+  <div class="board board-inner" id="board"></div>
+  <div class="row-labels" id="row-labels"></div>
 </div>
 
 <button class="btn-next" id="btn-next" onclick="nextQuestion()">次の問題 →</button>
@@ -339,6 +345,8 @@ function updateLabelsVisibility() {
   const show = (mode === 'basic');
   document.getElementById('col-labels').style.visibility = show ? 'visible' : 'hidden';
   document.getElementById('row-labels').style.visibility = show ? 'visible' : 'hidden';
+  // col-labelsも常にスペース確保
+  document.getElementById('col-labels').style.display = 'grid';
   document.getElementById('gote-badge').style.display = (mode === 'gote') ? 'block' : 'none';
   // ヒント更新
   document.getElementById('hint').textContent = (mode === 'gote')
