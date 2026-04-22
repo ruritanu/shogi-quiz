@@ -7,8 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cell-h: 38px;
-    --cell-w: calc(38px * 0.88);
+    --cell-h: min(38px, calc((100svh - 280px) / 9));
+    --cell-w: calc(var(--cell-h) * 0.88);
     --bg: #1a1208;
     --paper: #f5e8c8;
     --board: #deb887;
@@ -263,12 +263,21 @@
   /* 後手番：盤を180度回転 */
   .board.gote-view {
     transform: rotate(180deg);
+    border: none;
+    outline: 2.5px solid var(--border);
   }
   .board.gote-view .cell {
-    transform: rotate(180deg); /* セル内は戻す */
+    transform: rotate(180deg);
   }
   .board.gote-view .cell:hover {
     transform: rotate(180deg) scale(1.04);
+  }
+  /* 回転で一番下の行のborderが二重に見えるのを防ぐ */
+  .board.gote-view .cell[data-row="8"] {
+    border-bottom: none;
+  }
+  .board.gote-view .cell[data-col="8"] {
+    border-right: 1px solid var(--border);
   }
 
   /* 一番右の列のborder-rightを消して均等に */
