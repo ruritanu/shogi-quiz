@@ -233,6 +233,7 @@
     box-shadow: 0 3px 12px rgba(0,0,0,0.4);
     transition: transform 0.15s, box-shadow 0.15s;
     visibility: hidden;
+    display: block;
   }
   .btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
 
@@ -457,15 +458,8 @@ function rebuildLabelsGote() {
 function genQuestion() {
   // col: 1-9 (将棋の筋), row: 0-8 index
   let col, rowIdx;
-  if (mode === 'basic') {
-    const easyCols = [7,6,5,4,3,2];
-    const easyRows = [0,1,2,6,7,8];
-    col = easyCols[Math.floor(Math.random()*easyCols.length)];
-    rowIdx = easyRows[Math.floor(Math.random()*easyRows.length)];
-  } else {
-    col = Math.floor(Math.random()*9)+1;
-    rowIdx = Math.floor(Math.random()*9);
-  }
+  col = Math.floor(Math.random()*9)+1;
+  rowIdx = Math.floor(Math.random()*9);
   const notation = col + KANJI_ROWS[rowIdx];
   // Board display: col 9 is leftmost (index 0), col 1 is rightmost (index 8)
   // 後手番でも符号の意味は同じ、ただし盤が180度回転しているので
