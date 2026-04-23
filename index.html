@@ -128,7 +128,6 @@
     grid-template-columns: repeat(9, var(--cell-w)) 24px;
     grid-template-rows: 20px repeat(9, var(--cell-h));
     max-width: 100%;
-    overflow-x: auto;
   }
 
   /* Column numbers top row */
@@ -233,12 +232,12 @@
     cursor: pointer;
     box-shadow: 0 3px 12px rgba(0,0,0,0.4);
     transition: transform 0.15s, box-shadow 0.15s;
-    display: none;
+    visibility: hidden;
   }
   .btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
 
 
-  .btn-next.visible { display: inline-block; }
+  .btn-next.visible { visibility: visible; }
 
 
 
