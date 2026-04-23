@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cell-h: min(38px, calc((100svh - 280px) / 9));
+    --cell-h: min(38px, calc((100svh - 280px) / 9), calc((100vw - 72px) / 9));
     --cell-w: calc(var(--cell-h) * 0.88);
     --bg: #1a1208;
     --paper: #f5e8c8;
@@ -28,12 +28,16 @@
   body {
     background: var(--bg);
     min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     font-family: 'Shippori Mincho', serif;
     padding: 20px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
     background-image: 
       radial-gradient(ellipse at 20% 20%, #2d1e06 0%, transparent 60%),
       radial-gradient(ellipse at 80% 80%, #0d0d0d 0%, transparent 60%);
@@ -122,7 +126,9 @@
   .board-area {
     display: inline-grid;
     grid-template-columns: repeat(9, var(--cell-w)) 24px;
-    grid-template-rows: 20px repeat(9, 38px);
+    grid-template-rows: 20px repeat(9, var(--cell-h));
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   /* Column numbers top row */
